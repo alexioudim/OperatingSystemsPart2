@@ -6,8 +6,15 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <semaphore.h>
+#include <signal.h>
 
 pthread_mutex_t mymutex = PTHREAD_MUTEX_INITIALIZER;
+
+void TerminateProgram(int signum) {
+    char ans;
+
+    scanf("%d", &ans);
+}
 
 int main() {
     const char *semName = "it2021002filelock";
@@ -20,9 +27,18 @@ int main() {
         printf("Error in opening the file");
     }
 
+    signal(SIGINT, TerminateProgram);
+    signal(SIGTERM, TerminateProgram);
+
     int pid = fork();
 
-    if (pid == 0) {  //child
+    if (pid == -1) { //check for error in fork
+        
+        perror("fork");
+        exit(1);
+
+    } else if (pid == 0) {  //child
+        
         sem_wait(sem_filelock);
         printf("Hello from child\n");
 
@@ -33,6 +49,7 @@ int main() {
         iret2 = pthread_create(&thread2, NULL, thread_func, 2);
         iret3 = pthread_create(&thread3, NULL, thread_func, 3);
         iret4 = pthread_create(&thread4, NULL, thread_func, 4);
+
 
 
 
@@ -66,7 +83,8 @@ int main() {
     }
 
     void* thread_func (void *args) {
-        
+        int letters[26];
+
         
         pthread_mutex_lock(&mymutex);
         
